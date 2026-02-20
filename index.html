@@ -1,0 +1,603 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <base target="_self">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinica+ | Sistema Multiprofissional</title>
+    <meta name="description" content="Sistema PWA integrado para clínica multiprofissional com agenda, prontuário SOA e módulos documentais">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a'
+                        },
+                        medical: {
+                            blue: '#1e88e5',
+                            teal: '#00acc1',
+                            green: '#43a047',
+                            amber: '#ffb300'
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .soap-section {
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+        
+        .soap-section:hover {
+            transform: translateX(4px);
+        }
+        
+        .calendar-day {
+            transition: all 0.2s ease;
+        }
+        
+        .calendar-day:hover:not(.disabled) {
+            background-color: #e3f2fd;
+            transform: scale(1.05);
+        }
+        
+        .document-card {
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .document-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6;
+        }
+        
+        .ai-assistant-bubble {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .progress-ring {
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <!-- Login Screen (Initial State) -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-medical-teal p-4">
+        <div class="glass-card w-full max-w-md rounded-2xl shadow-2xl p-8">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-gradient-to-r from-medical-blue to-medical-teal rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-stethoscope text-white text-3xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800">Clinica+</h1>
+                <p class="text-gray-600 mt-2">Sistema Multiprofissional Integrado</p>
+            </div>
+            
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-gray-400"></i>
+                        </div>
+                        <input type="text" required class="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition" placeholder="CRM/CRO ou e-mail">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-gray-400"></i>
+                        </div>
+                        <input type="password" required class="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition" placeholder="••••••••">
+                        <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center" id="toggle-password">
+                            <i class="fas fa-eye text-gray-400"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <label for="remember" class="ml-2 block text-sm text-gray-700">Manter conectado</label>
+                    </div>
+                    <a href="#" class="text-sm text-primary-600 hover:text-primary-800 font-medium">Esqueceu a senha?</a>
+                </div>
+                
+                <button type="submit" class="w-full bg-gradient-to-r from-medical-blue to-medical-teal text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition duration-300 shadow-lg">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Entrar no Sistema
+                </button>
+                
+                <div class="text-center pt-4 border-t border-gray-200">
+                    <p class="text-sm text-gray-600">
+                        Primeiro acesso? 
+                        <a href="#" class="text-primary-600 hover:text-primary-800 font-medium">Configure sua senha</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard (Hidden Initially) -->
+    <div id="dashboard" class="hidden min-h-screen">
+        <!-- Top Navigation -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <button id="sidebar-toggle" class="p-2 rounded-lg text-gray-600 hover:bg-gray-100 lg:hidden">
+                            <i class="fas fa-bars text-lg"></i>
+                        </button>
+                        <div class="ml-4 flex items-center">
+                            <div class="w-10 h-10 bg-gradient-to-r from-medical-blue to-medical-teal rounded-xl flex items-center justify-center">
+                                <i class="fas fa-stethoscope text-white"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h1 class="text-xl font-bold text-gray-800">Clinica+</h1>
+                                <p class="text-xs text-gray-500">Sistema Multiprofissional</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <button id="notifications-btn" class="p-2 rounded-full text-gray-600 hover:bg-gray-100 relative">
+                                <i class="fas fa-bell text-lg"></i>
+                                <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                            </button>
+                        </div>
+                        
+                        <div class="relative">
+                            <button id="user-menu-btn" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100">
+                                <div class="w-10 h-10 bg-gradient-to-r from-medical-blue to-medical-teal rounded-full flex items-center justify-center">
+                                    <span class="text-white font-semibold">DR</span>
+                                </div>
+                                <div class="text-left hidden md:block">
+                                    <p class="text-sm font-medium text-gray-800">Dr. João Silva</p>
+                                    <p class="text-xs text-gray-500">CRM 12345/SP</p>
+                                </div>
+                                <i class="fas fa-chevron-down text-gray-400"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex">
+            <!-- Sidebar -->
+            <aside id="sidebar" class="bg-white w-64 border-r min-h-[calc(100vh-4rem)] hidden lg:block fixed lg:relative z-40">
+                <nav class="p-4 space-y-2">
+                    <div id="nav-items-container"></div>
+                </nav>
+                
+                <div class="absolute bottom-0 left-0 right-0 p-4 border-t">
+                    <div class="flex items-center space-x-3 p-3 bg-primary-50 rounded-lg">
+                        <div class="w-10 h-10 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-robot text-white"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">Assistente IA</p>
+                            <p class="text-xs text-gray-600">Ativo para SOAP</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-4 md:p-6 lg:p-8">
+                <!-- Dashboard Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="stats-container"></div>
+                
+                <!-- Calendar Section -->
+                <div class="bg-white rounded-xl shadow-sm border p-6 mb-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">Agenda Interativa</h2>
+                        <div class="flex space-x-2">
+                            <button class="px-4 py-2 text-sm font-medium rounded-lg bg-primary-50 text-primary-700">Dia</button>
+                            <button class="px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100">Semana</button>
+                            <button class="px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100">Mês</button>
+                        </div>
+                    </div>
+                    <div id="calendar-container" class="overflow-x-auto"></div>
+                </div>
+                
+                <!-- Quick Actions & Documents -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-xl shadow-sm border p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-6">Ações Rápidas</h2>
+                        <div class="grid grid-cols-2 gap-4" id="quick-actions-container"></div>
+                    </div>
+                    
+                    <!-- Document Modules -->
+                    <div class="bg-white rounded-xl shadow-sm border p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-6">Módulos Documentais</h2>
+                        <div class="space-y-4" id="documents-container"></div>
+                    </div>
+                </div>
+                
+                <!-- SOAP Preview -->
+                <div class="mt-8 bg-white rounded-xl shadow-sm border p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">Prontuário SOAP - Última Evolução</h2>
+                        <button class="px-4 py-2 bg-gradient-to-r from-medical-blue to-medical-teal text-white rounded-lg font-medium hover:opacity-90 transition">
+                            <i class="fas fa-plus mr-2"></i>Nova Evolução
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="soap-container"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- User Menu Dropdown -->
+    <div id="user-menu" class="hidden absolute right-4 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
+        <div class="p-4 border-b">
+            <p class="font-medium text-gray-800">Dr. João Silva</p>
+            <p class="text-sm text-gray-500">Clínica Geral</p>
+        </div>
+        <div class="p-2">
+            <a href="#" class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                <i class="fas fa-user-cog mr-3 text-gray-400"></i>Meu Perfil
+            </a>
+            <a href="#" class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                <i class="fas fa-key mr-3 text-gray-400"></i>Alterar Senha
+            </a>
+            <a href="#" class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                <i class="fas fa-download mr-3 text-gray-400"></i>Exportar Dados
+            </a>
+            <a href="#" class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                <i class="fas fa-cog mr-3 text-gray-400"></i>Configurações
+            </a>
+        </div>
+        <div class="border-t p-2">
+            <button id="logout-btn" class="w-full flex items-center justify-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded">
+                <i class="fas fa-sign-out-alt mr-2"></i>Sair do Sistema
+            </button>
+        </div>
+    </div>
+
+    <!-- Notifications Dropdown -->
+    <div id="notifications-menu" class="hidden absolute right-4 mt-2 w-80 bg-white rounded-lg shadow-lg border z-50">
+        <div class="p-4 border-b">
+            <div class="flex justify-between items-center">
+                <h3 class="font-medium text-gray-800">Notificações</h3>
+                <span class="text-xs text-primary-600">3 novas</span>
+            </div>
+        </div>
+        <div class="max-h-96 overflow-y-auto" id="notifications-container"></div>
+    </div>
+
+    <script>
+        // ==================== DATA LAYER ====================
+        const navigationItems = [
+            { "icon": "fas fa-calendar-alt", "label": "Agenda", "active": true, "badge": "" },
+            { "icon": "fas fa-file-medical", "label": "Prontuários", "active": false, "badge": "12" },
+            { "icon": "fas fa-user-friends", "label": "Pacientes", "active": false, "badge": "" },
+            { "icon": "fas fa-prescription-bottle-alt", "label": "Receituário", "active": false, "badge": "3" },
+            { "icon": "fas fa-file-contract", "label": "Atestados", "active": false, "badge": "" },
+            { "icon": "fas fa-file-medical-alt", "label": "Laudos", "active": false, "badge": "1" },
+            { "icon": "fas fa-receipt", "label": "Recibos", "active": false, "badge": "" },
+            { "icon": "fas fa-calculator", "label": "Orçamentos", "active": false, "badge": "5" },
+            { "icon": "fas fa-sticky-note", "label": "Bloco de Notas", "active": false, "badge": "" },
+            { "icon": "fas fa-chart-line", "label": "Relatórios", "active": false, "badge": "" },
+            { "icon": "fas fa-database", "label": "Backup", "active": false, "badge": "" },
+            { "icon": "fas fa-sliders-h", "label": "Configurações", "active": false, "badge": "" }
+        ];
+
+        const statsData = [
+            { "title": "Consultas Hoje", "value": "8", "change": "+2", "icon": "fas fa-calendar-check", "color": "text-medical-blue", "bg": "bg-blue-50" },
+            { "title": "Pacientes Ativos", "value": "142", "change": "+12", "icon": "fas fa-user-injured", "color": "text-medical-green", "bg": "bg-green-50" },
+            { "title": "Documentos Pendentes", "value": "9", "change": "-3", "icon": "fas fa-file-signature", "color": "text-amber-500", "bg": "bg-amber-50" },
+            { "title": "Evoluções SOAP", "value": "24", "change": "+7", "icon": "fas fa-clipboard-list", "color": "text-medical-teal", "bg": "bg-teal-50" }
+        ];
+
+        const calendarDays = [
+            { "day": "Seg", "date": "10", "status": "available", "appointments": 3 },
+            { "day": "Ter", "date": "11", "status": "available", "appointments": 5 },
+            { "day": "Qua", "date": "12", "status": "holiday", "appointments": 0 },
+            { "day": "Qui", "date": "13", "status": "available", "appointments": 4 },
+            { "day": "Sex", "date": "14", "status": "available", "appointments": 6 },
+            { "day": "Sáb", "date": "15", "status": "weekend", "appointments": 0 },
+            { "day": "Dom", "date": "16", "status": "weekend", "appointments": 0 }
+        ];
+
+        const quickActions = [
+            { "icon": "fas fa-user-plus", "label": "Novo Paciente", "color": "bg-gradient-to-r from-medical-blue to-cyan-500" },
+            { "icon": "fas fa-calendar-plus", "label": "Novo Agendamento", "color": "bg-gradient-to-r from-medical-green to-emerald-500" },
+            { "icon": "fas fa-file-prescription", "label": "Receita Rápida", "color": "bg-gradient-to-r from-amber-500 to-orange-500" },
+            { "icon": "fas fa-robot", "label": "Assistente IA", "color": "bg-gradient-to-r from-purple-500 to-pink-500" }
+        ];
+
+        const documentModules = [
+            { "icon": "fas fa-prescription-bottle-alt", "title": "Receituário", "description": "Prescrição médica com validação", "count": 3, "color": "border-l-medical-blue" },
+            { "icon": "fas fa-file-contract", "title": "Atestado", "description": "Modelos personalizáveis", "count": 0, "color": "border-l-medical-green" },
+            { "icon": "fas fa-file-medical-alt", "title": "Laudo", "description": "Resultados de exames", "count": 1, "color": "border-l-amber-500" },
+            { "icon": "fas fa-receipt", "title": "Recibo", "description": "Pagamentos e serviços", "count": 0, "color": "border-l-purple-500" },
+            { "icon": "fas fa-calculator", "title": "Orçamento", "description": "Procedimentos e valores", "count": 5, "color": "border-l-medical-teal" }
+        ];
+
+        const soapSections = [
+            { "letter": "S", "title": "Subjetivo", "content": "Paciente relata cefaleia há 3 dias, intensidade 7/10, sem melhora com analgésicos comuns. Refere fotofobia leve.", "color": "border-l-blue-500", "icon": "fas fa-comment-medical" },
+            { "letter": "O", "title": "Objetivo", "content": "PA: 120/80 mmHg, FC: 72 bpm, Temp: 36.8°C. Exame neurológico sem alterações. Fundoscopia normal.", "color": "border-l-green-500", "icon": "fas fa-clipboard-check" },
+            { "letter": "A", "title": "Avaliação", "content": "Cefaleia tensional provável. Descartar causas secundárias. Necessário acompanhamento da evolução.", "color": "border-l-amber-500", "icon": "fas fa-stethoscope" },
+            { "letter": "P", "title": "Plano", "content": "1. Analgésico prescrito\n2. Retorno em 7 dias\n3. Encaminhar para neurologia se persistir\n4. Orientar sobre hábitos", "color": "border-l-purple-500", "icon": "fas fa-tasks" }
+        ];
+
+        const notifications = [
+            { "title": "Consulta Confirmada", "message": "Maria Santos confirmou para amanhã às 14:00", "time": "10 min", "unread": true, "icon": "fas fa-calendar-check", "color": "text-green-500" },
+            { "title": "Documento Pendente", "message": "Laudo de ressonância aguarda assinatura", "time": "1 hora", "unread": true, "icon": "fas fa-file-signature", "color": "text-amber-500" },
+            { "title": "Backup Automático", "message": "Backup realizado com sucesso às 03:00", "time": "2 horas", "unread": true, "icon": "fas fa-database", "color": "text-blue-500" },
+            { "title": "Nova Mensagem", "message": "Dr. Carlos deixou mensagem no prontuário", "time": "5 horas", "unread": false, "icon": "fas fa-comment-medical", "color": "text-gray-500" },
+            { "title": "Atualização do Sistema", "message": "Nova versão disponível para instalação", "time": "1 dia", "unread": false, "icon": "fas fa-sync-alt", "color": "text-purple-500" }
+        ];
+
+        // ==================== RENDER FUNCTIONS ====================
+        function renderNavItems(items) {
+            return items.map(item => `
+                <a href="#" class="flex items-center justify-between px-4 py-3 rounded-lg transition ${item.active ? 'bg-primary-50 text-primary-700 border-l-4 border-primary-500' : 'text-gray-700 hover:bg-gray-100'}">
+                    <div class="flex items-center">
+                        <i class="${item.icon} w-5 mr-3 ${item.active ? 'text-primary-600' : 'text-gray-400'}"></i>
+                        <span class="font-medium">${item.label}</span>
+                    </div>
+                    ${item.badge ? `<span class="bg-primary-100 text-primary-800 text-xs font-semibold px-2 py-1 rounded-full">${item.badge}</span>` : ''}
+                </a>
+            `).join("");
+        }
+
+        function renderStats(items) {
+            return items.map(item => `
+                <div class="bg-white rounded-xl border p-5">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">${item.title}</p>
+                            <div class="flex items-baseline">
+                                <h3 class="text-2xl font-bold text-gray-800">${item.value}</h3>
+                                <span class="ml-2 text-sm font-medium ${item.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}">${item.change}</span>
+                            </div>
+                        </div>
+                        <div class="${item.bg} p-3 rounded-lg">
+                            <i class="${item.icon} ${item.color} text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full ${item.color.replace('text-', 'bg-')} rounded-full" style="width: ${Math.min(100, parseInt(item.value) * 2)}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function renderCalendar(days) {
+            return `
+                <div class="flex space-x-4 min-w-max">
+                    ${days.map(day => `
+                        <div class="calendar-day w-24 flex-shrink-0 text-center p-4 rounded-xl border ${day.status === 'weekend' || day.status === 'holiday' ? 'bg-gray-100 text-gray-400 disabled' : 'bg-white'}">
+                            <div class="text-sm font-medium text-gray-500">${day.day}</div>
+                            <div class="text-2xl font-bold my-2 ${day.status === 'holiday' ? 'text-red-500' : 'text-gray-800'}">${day.date}</div>
+                            ${day.status === 'holiday' ? 
+                                '<div class="text-xs text-red-500 font-medium">FERIADO</div>' : 
+                                day.status === 'weekend' ? 
+                                '<div class="text-xs text-gray-500">FECHADO</div>' : 
+                                `<div class="text-xs font-medium ${day.appointments > 0 ? 'text-green-600' : 'text-gray-500'}">${day.appointments} consulta${day.appointments !== 1 ? 's' : ''}</div>`
+                            }
+                        </div>
+                    `).join("")}
+                </div>
+            `;
+        }
+
+        function renderQuickActions(actions) {
+            return actions.map(action => `
+                <button class="flex flex-col items-center justify-center p-4 rounded-xl border hover:border-primary-300 transition group">
+                    <div class="${action.color} w-12 h-12 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                        <i class="${action.icon} text-white text-xl"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">${action.label}</span>
+                </button>
+            `).join("");
+        }
+
+        function renderDocuments(docs) {
+            return docs.map(doc => `
+                <div class="document-card p-4 ${doc.color}">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="${doc.icon} text-gray-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-800">${doc.title}</h4>
+                                <p class="text-sm text-gray-500">${doc.description}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            ${doc.count > 0 ? `<span class="bg-primary-100 text-primary-800 text-xs font-semibold px-2 py-1 rounded-full mr-3">${doc.count} pendente${doc.count !== 1 ? 's' : ''}</span>` : ''}
+                            <button class="text-primary-600 hover:text-primary-800">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function renderSOAP(sections) {
+            return sections.map(section => `
+                <div class="soap-section p-5 rounded-lg border ${section.color} bg-white">
+                    <div class="flex items-center mb-3">
+                        <div class="w-8 h-8 ${section.color.replace('border-l-', 'bg-')} rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-white font-bold">${section.letter}</span>
+                        </div>
+                        <h3 class="font-bold text-gray-800">${section.title}</h3>
+                        <i class="${section.icon} ml-auto text-gray-400"></i>
+                    </div>
+                    <p class="text-gray-600 whitespace-pre-line">${section.content}</p>
+                    <div class="mt-4 pt-3 border-t border-gray-100">
+                        <button class="text-sm text-primary-600 hover:text-primary-800 font-medium">
+                            <i class="fas fa-edit mr-1"></i>Editar com IA
+                        </button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function renderNotifications(notifs) {
+            return notifs.map(notif => `
+                <div class="p-4 border-b hover:bg-gray-50 ${notif.unread ? 'bg-blue-50' : ''}">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="${notif.icon} ${notif.color} text-lg"></i>
+                        </div>
+                        <div class="ml-3 flex-1">
+                            <div class="flex justify-between">
+                                <p class="text-sm font-medium text-gray-800">${notif.title}</p>
+                                <span class="text-xs text-gray-500">${notif.time}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">${notif.message}</p>
+                        </div>
+                        ${notif.unread ? '<div class="w-2 h-2 bg-blue-500 rounded-full ml-2 mt-1"></div>' : ''}
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Render all data-driven sections
+            document.getElementById('nav-items-container').innerHTML = renderNavItems(navigationItems);
+            document.getElementById('stats-container').innerHTML = renderStats(statsData);
+            document.getElementById('calendar-container').innerHTML = renderCalendar(calendarDays);
+            document.getElementById('quick-actions-container').innerHTML = renderQuickActions(quickActions);
+            document.getElementById('documents-container').innerHTML = renderDocuments(documentModules);
+            document.getElementById('soap-container').innerHTML = renderSOAP(soapSections);
+            document.getElementById('notifications-container').innerHTML = renderNotifications(notifications);
+
+            // ==================== EVENT HANDLERS ====================
+            // Login form submission
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Simulate login
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                // In real app, would validate credentials and set up PWA
+                console.log('Login realizado - Sistema PWA carregado');
+            });
+
+            // Toggle password visibility
+            document.getElementById('toggle-password').addEventListener('click', function() {
+                const passwordInput = document.querySelector('input[type="password"]');
+                const icon = this.querySelector('i');
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+
+            // Sidebar toggle for mobile
+            document.getElementById('sidebar-toggle').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('hidden');
+            });
+
+            // User menu toggle
+            let userMenuVisible = false;
+            document.getElementById('user-menu-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                userMenuVisible = !userMenuVisible;
+                document.getElementById('user-menu').classList.toggle('hidden');
+                document.getElementById('notifications-menu').classList.add('hidden');
+            });
+
+            // Notifications toggle
+            let notificationsVisible = false;
+            document.getElementById('notifications-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                notificationsVisible = !notificationsVisible;
+                document.getElementById('notifications-menu').classList.toggle('hidden');
+                document.getElementById('user-menu').classList.add('hidden');
+            });
+
+            // Logout button
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                document.getElementById('dashboard').classList.add('hidden');
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('user-menu').classList.add('hidden');
+                // Reset form
+                document.getElementById('login-form').reset();
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function() {
+                document.getElementById('user-menu').classList.add('hidden');
+                document.getElementById('notifications-menu').classList.add('hidden');
+                userMenuVisible = false;
+                notificationsVisible = false;
+            });
+
+            // Prevent dropdown close when clicking inside
+            document.getElementById('user-menu').addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            document.getElementById('notifications-menu').addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+
+            // Navigation click handlers (delegated)
+            document.addEventListener('click', function(e) {
+                // Handle nav item clicks
+                if (e.target.closest('#nav-items-container a')) {
+                    const navItem = e.target.closest('#nav-items-container a');
+                    const allNavItems = document.querySelectorAll('#nav-items-container a');
+                    
+                    allNavItems.forEach(item => {
+                        item.classList.remove('bg-primary-50', 'text-primary-700', 'border-l-4', 'border-primary-500');
+                        item.classList.add('text-gray-700', 'hover:bg-gray-100');
+                        const icon = item.querySelector('i');
+                        if
